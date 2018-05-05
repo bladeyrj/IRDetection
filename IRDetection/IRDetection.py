@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import glob as gb
+import os
 
 def get_ln(matrix):
     ln = 0
@@ -94,67 +95,51 @@ def get_target(ilcm):
 def get_th(ilcm):
     mu = np.mean(ilcm)
     sigma = np.std(ilcm)
-    k = 5
+    k = 2
     return mu + sigma*k
 
 def get_target_pos(target_list):
     pos = target_list * step_size
     return pos
 
-def draw_rectangle(pos, img, file_name):
-    image = img.copy()
-    new_pos = list()
-    rec_size = 15
-    print(pos)
-    print(len(pos))
-    if len(pos):
-        x,y = [0,0]
-        for i in range(len(pos)):
-            x += pos[i,0]
-            y += pos[i,1]
-        x = int(x/len(pos))
-        y = int(y/len(pos))
-        new_pos = [x,y]
-        cv2.rectangle(image, (new_pos[0]-rec_size,new_pos[1]+rec_size), (new_pos[0]+rec_size,new_pos[1]-rec_size), (0,255,0), 1)
-        cv2.imshow('input image',img)
-        cv2.imshow('output image',image)
-        output_file = output_path+'.'+file_name
-        print(output_file)
-        #cv2.imwrite(output_file, image)
-    else:
-        print("no object detected!")
-
-    return
-
-#def draw_rectangle(pos, img):
+#def draw_rectangle(pos, img, output):
 #    image = img.copy()
 #    new_pos = list()
 #    rec_size = 15
-#    pos = pos.tolist()
-#    if len(pos) >= 1:
-#        for i in range(len(pos)-1):
-#            compare_pos.append([pos[0][0],pos[0][1]])
-#            if (abs(pos[i][0]-pos[i][0])<sub_size or abs(pos[i][1]-pos[i][1])<sub_size):
-#                new_x = int((pos[i][0]+pos[i+1][0])/2)
-#                new_y = int((pos[i][1]+pos[i+1][1])/2)
-#                new_pos.append([new_x, new_y])
-#            else:
-#                new_pos.append([pos[i,0], pos[i,1]])
+#    if pos.tolist()[0]:
+#        x,y = [0,0]
+#        for i in range(len(pos)):
+#            x += pos[i,0]
+#            y += pos[i,1]
+#        x = int(x/len(pos))
+#        y = int(y/len(pos))
+#        new_pos = [x,y]
+#        cv2.rectangle(image, (new_pos[0]-rec_size,new_pos[1]+rec_size), (new_pos[0]+rec_size,new_pos[1]-rec_size), (0,255,0), 1)
+#        #cv2.imshow('input image',img)
+#        #cv2.imshow('output image',image)
+#        print('output file: '+output)
+#        cv2.imwrite(output, image)
 #    else:
 #        print("no object detected!")
-#    print(pos)
-#    print(new_pos)
-#    for i in range(len(new_pos)):
-#        cv2.rectangle(image, (new_pos[i][0]-rec_size,new_pos[i][1]+rec_size), (new_pos[i][0]+rec_size,new_pos[i][1]-rec_size), (0,255,0), 1)
-#        cv2.imshow('input image',img)
-#        cv2.imshow('output image',image)
-#    #cv2.imwrite('001_new.jpg', img)
+
 #    return
+
+def draw_rectangle(pos, img, output):
+    image = img.copy()
+    rec_size = 15
+    new_pos = pos.tolist()
+    for i in range(len(new_pos)):
+        cv2.rectangle(image, (new_pos[i][0]-rec_size,new_pos[i][1]+rec_size), (new_pos[i][0]+rec_size,new_pos[i][1]-rec_size), (0,255,0), 1)
+        #cv2.imshow('input image',img)
+        #cv2.imshow('output image',image)
+        print('output file: '+output)
+        cv2.imwrite(output, image)
+    return
 
 def img_process(input_path, output_path):
     #input_path ='./data_set/'
     #file_name = '1.bmp'
-    file_name = input_path.split(".")[-1]
+    file_name = os.path.basename(input_path)
     print('loading %s' % input_path)
     img = cv2.imread(input_path)
     img_grey = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -166,22 +151,22 @@ def img_process(input_path, output_path):
     th = get_th(ilcm)
     target_list = get_target_th(ilcm, th)
     pos = get_target_pos(target_list)
-
-    draw_rectangle(pos, img, file_name)
+    output = output_path+file_name
+    draw_rectangle(pos, img, output)
     
     return
 
 
-output_path = '\\output\\'
-img_path = gb.glob(".\data_set\*.bmp") 
-sub_size = 8
+output_path = './output/'
+img_path = gb.glob(".\\data_set\\*.bmp") 
+sub_size = 4
 step_size = int(sub_size/2)
-img_process('./data_set/14.bmp',output_path)
-#for path in img_path:
-#    print(path)
-#    #img  = cv2.imread(path) 
-#    #print(path)
-#    img_process(path, output_path)
+#img_process('./data_set/3.bmp',output_path)
+for path in img_path:
+    #print(path)
+    #img  = cv2.imread(path) 
+    #print(path)
+    img_process(path, output_path)
 #    pass
     
 
