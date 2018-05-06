@@ -126,14 +126,19 @@ def get_target_pos(target_list):
 
 def draw_rectangle(pos, img, output):
     image = img.copy()
-    rec_size = 15
+    rec_size = 10
     new_pos = pos.tolist()
-    for i in range(len(new_pos)):
-        cv2.rectangle(image, (new_pos[i][0]-rec_size,new_pos[i][1]+rec_size), (new_pos[i][0]+rec_size,new_pos[i][1]-rec_size), (0,255,0), 1)
-        #cv2.imshow('input image',img)
-        #cv2.imshow('output image',image)
-        print('output file: '+output)
-        cv2.imwrite(output, image)
+    #print(new_pos)
+    if new_pos[0]:
+        for i in range(len(new_pos)):
+            cv2.rectangle(image, (new_pos[i][0]-rec_size,new_pos[i][1]+rec_size), (new_pos[i][0]+rec_size,new_pos[i][1]-rec_size), (0,255,0), 1)
+            #cv2.imshow('input image',img)
+            #cv2.imshow('output image',image)
+
+    else:
+        print("Detection Failed")
+    print('output file: '+output)
+    cv2.imwrite(output, image)
     return
 
 def img_process(input_path, output_path):
