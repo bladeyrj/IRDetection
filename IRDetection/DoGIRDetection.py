@@ -88,7 +88,7 @@ def get_target_max(ilcm):
 def get_th(ilcm):
     mu = np.mean(ilcm)
     sigma = np.std(ilcm)
-    k = 2
+    k = 20
     return mu + sigma*k
 
 def get_target_pos(target_list):
@@ -105,12 +105,12 @@ def draw_rectangle(pos, img, output):
         for i in range(len(new_pos)):
             cv2.rectangle(image, (new_pos[i][0]-rec_size,new_pos[i][1]+rec_size), (new_pos[i][0]+rec_size,new_pos[i][1]-rec_size), (0,255,0), 1)
             #cv2.imshow('input image',img)
-            cv2.imshow('output image',image)
+            #cv2.imshow('output image',image)
 
     else:
         print("Detection Failed")
     print('output file: '+output)
-    #cv2.imwrite(output, image)
+    cv2.imwrite(output, image)
     return
 
 def img_process(input_path):
@@ -119,21 +119,18 @@ def img_process(input_path):
     img = cv2.imread(input_path)
 
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(3, 3))  
-  
-    eroded = cv2.erode(img,kernel)   
-    #cv2.imshow("Eroded Image",eroded)
-  
-    dilated = cv2.dilate(img,kernel)   
-    #cv2.imshow("Dilated Image",dilated)
-
-    #cv2.imshow("Origin", img)
+    diff1 = cv2.GaussianBlur(img, (5,5), 1)
+    diff2 = cv2.GaussianBlur(img, (3,3), 1)
+    dog = np.mat(cv2.cvtColor(diff1 - diff2,cv2.COLOR_BGR2GRAY))
     
-    gray = cv2.cvtColor(dilated,cv2.COLOR_BGR2GRAY)
-    img_mat = np.mat(gray)
+    dog_shrink = dog[10:246, 10:246]
+
+    #cv2.imshow("DoG", dog)
+    #cv2.imshow("DoG_shrink", dog_shrink)
+    #cv2.imshow("Origin", img)
 
 
-    sblk , ln = get_sblk(img_mat, sub_size)
+    sblk , ln = get_sblk(dog_shrink, sub_size)
     ilcm = get_ilcm(ln, sblk)
     th = get_th(ilcm)
     target_list = get_target_max(ilcm)
@@ -150,4 +147,5 @@ sub_size = 4
 global step_size
 step_size = int(sub_size/2)
 global output_path
-output_path = './output_dilated/' 
+output_path = './output_DoG/' 
+
