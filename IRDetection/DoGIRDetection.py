@@ -103,7 +103,7 @@ def draw_rectangle(pos, img, output):
     #print(new_pos)
     if new_pos[0]:
         for i in range(len(new_pos)):
-            cv2.rectangle(image, (new_pos[i][0]-rec_size,new_pos[i][1]+rec_size), (new_pos[i][0]+rec_size,new_pos[i][1]-rec_size), (0,255,0), 1)
+            cv2.rectangle(image, (new_pos[i][0]-rec_size+20,new_pos[i][1]+rec_size+20), (new_pos[i][0]+rec_size+20,new_pos[i][1]-rec_size+20), (0,255,0), 1)
             #cv2.imshow('input image',img)
             #cv2.imshow('output image',image)
 
@@ -143,7 +143,7 @@ def img_process(input_path):
 
 
 global sub_size
-sub_size = 4
+sub_size = 16
 global step_size
 step_size = int(sub_size/2)
 global output_path
