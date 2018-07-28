@@ -74,34 +74,26 @@ def get_sblk(img_mat, sub_size):
     
     return sblk, ln
 
-def get_target_th(ilcm, th):
-    target_list = list()
+def get_target_max(ilcm):
+    target_max = [0,0]
+    temp_ilcm = 0
     for i in range(ilcm.shape[0]):
         for j in range(ilcm.shape[1]):
-            if ilcm[i,j] > th:
-                target_list.append([i,j])
+            if ilcm[i,j] > temp_ilcm:
+                target_max = [i,j]
+                temp_ilcm = ilcm[i,j]
                 #print("target position:%d\t%d" % (i, j))
-    return np.mat(target_list)
-
-def get_target(ilcm):
-    target_list = list()
-    for i in range(ilcm.shape[0]):
-        for j in range(ilcm.shape[1]):
-            if ilcm[i,j] > sblk[i,j]:
-                target_list.append([i,j])
-                #print("target position:%d\t%d" % (i, j))
-    return np.mat(target_list)
+    return np.mat(target_max)
 
 def get_th(ilcm):
     mu = np.mean(ilcm)
     sigma = np.std(ilcm)
-    k = 2
+    k = 20
     return mu + sigma*k
 
 def get_target_pos(target_list):
     pos = target_list * step_size
     return pos
-
 
 
 def draw_rectangle(pos, img, output):
@@ -111,39 +103,53 @@ def draw_rectangle(pos, img, output):
     #print(new_pos)
     if new_pos[0]:
         for i in range(len(new_pos)):
-            cv2.rectangle(image, (new_pos[i][0]-rec_size,new_pos[i][1]+rec_size), (new_pos[i][0]+rec_size,new_pos[i][1]-rec_size), (0,255,0), 1)
-            #cv2.imshow('input image',img)
-            #cv2.imshow('output image',image)
+            cv2.rectangle(image, (new_pos[i][0]-rec_size+20,new_pos[i][1]+rec_size+20), (new_pos[i][0]+rec_size+20,new_pos[i][1]-rec_size+20), (0,255,0), 1)
+            cv2.imshow('input image',img)
+            cv2.imshow('output image',image)
 
     else:
         print("Detection Failed")
     print('output file: '+output)
-    cv2.imwrite(output, image)
+    #cv2.imwrite(output, image)
     return
 
 def img_process(input_path):
-    #input_path ='./data_set/'
-    #file_name = '1.bmp'
     file_name = os.path.basename(input_path)
     print('loading %s' % input_path)
     img = cv2.imread(input_path)
-    img_grey = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
+    median_filter = cv2.medianBlur(img,5)
+    cv2.imshow('median', median_filter)
+
+    kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+    sharpen_filter = cv2.filter2D(median_filter, -1, kernel)
+    cv2.imshow('sharpen', sharpen_filter)
+
+    gray_lap = cv2.Laplacian(img,cv2.CV_16S,ksize = 1)
+    edge = cv2.convertScaleAbs(gray_lap)
+    cv2.imshow('edge', edge)
+
+    #dilated = cv2.dilate(img,kernel) 
+
+    img_grey = cv2.cvtColor(edge, cv2.COLOR_BGR2GRAY)
     img_mat = np.mat(img_grey)
+
 
     sblk , ln = get_sblk(img_mat, sub_size)
     ilcm = get_ilcm(ln, sblk)
-    th = get_th(ilcm)
-    target_list = get_target_th(ilcm, th)
+    target_list = get_target_max(ilcm)
     pos = get_target_pos(target_list)
     output = output_path+file_name
     draw_rectangle(pos, img, output)
     
     return
 
+
+
 global sub_size
-sub_size = 4
+sub_size = 16
 global step_size
 step_size = int(sub_size/2)
 global output_path
-output_path = './output/' 
+output_path = './output_DoG/' 
+
